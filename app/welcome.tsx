@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useState } from 'react';
 import { useApp } from '@/providers/AppProvider';
 import { COLORS } from '@/constants/config';
@@ -42,43 +42,40 @@ export default function WelcomeScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.safe}>
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.content}>
-              <View style={styles.header}>
-                <Text style={styles.title}>Welcome to SyncPoint</Text>
-                <Text style={styles.subtitle}>
-                  Find the perfect time for your group without sharing your full schedule
-                </Text>
-              </View>
-
-              <View style={styles.form}>
-                <Text style={styles.label}>What is your name?</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your name"
-                  placeholderTextColor={COLORS.neutralDark}
-                  value={name}
-                  onChangeText={setName}
-                  autoCapitalize="words"
-                  returnKeyType="done"
-                  onSubmitEditing={handleSubmit}
-                  blurOnSubmit
-                />
-
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleSubmit}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.buttonText}>Get Started</Text>
-                </TouchableOpacity>
-              </View>
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <Text style={styles.title}>Welcome to SyncPoint</Text>
+              <Text style={styles.subtitle}>
+                Find the perfect time for your group without sharing your full schedule
+              </Text>
             </View>
-          </TouchableWithoutFeedback>
+
+            <View style={styles.form}>
+              <Text style={styles.label}>What is your name?</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your name"
+                placeholderTextColor={COLORS.neutralDark}
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+                returnKeyType="done"
+                onSubmitEditing={handleSubmit}
+              />
+
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleSubmit}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.buttonText}>Get Started</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
