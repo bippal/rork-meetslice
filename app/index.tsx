@@ -280,8 +280,10 @@ export default function HomeScreen() {
             </View>
             <View style={styles.privacyItems}>
               <View style={styles.privacyItem}>
-                <Text style={styles.privacyLabel}>Zero-Knowledge Overlap</Text>
-                <Text style={styles.privacyDesc}>Only shows group availability, never individuals</Text>
+                <View style={styles.privacyItemText}>
+                  <Text style={styles.privacyLabel}>Zero-Knowledge Overlap</Text>
+                  <Text style={styles.privacyDesc}>Only shows group availability, never individuals</Text>
+                </View>
               </View>
               {Platform.OS !== 'web' && (
                 <View style={styles.privacyItem}>
