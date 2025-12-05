@@ -122,6 +122,9 @@ export const [AppProvider, useApp] = createContextHook(() => {
     await queryClient.refetchQueries({ queryKey: ['user'] });
     console.log('Refetched queries');
     
+    setCurrentUser(user);
+    console.log('Updated currentUser state');
+    
     console.log('=== createUser complete ===');
   };
 
