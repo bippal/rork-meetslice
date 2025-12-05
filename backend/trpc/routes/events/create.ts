@@ -23,33 +23,47 @@ export default publicProcedure
     })
   )
   .mutation(async ({ input }) => {
-    const eventId = generateId();
-    const code = generateCode();
+    try {
+      console.log('=== CREATE EVENT MUTATION ===');
+      console.log('Input:', input);
+      
+      const eventId = generateId();
+      const code = generateCode();
+      
+      console.log('Generated eventId:', eventId);
+      console.log('Generated code:', code);
 
-    const event: Event = {
-      id: eventId,
-      name: input.name,
-      description: input.description,
-      organizerId: input.userId,
-      code,
-      createdAt: new Date().toISOString(),
-      lastActivity: new Date().toISOString(),
-      ttl: input.ttl,
-      isGhostMode: input.isGhostMode,
-      isBurnerLink: input.isBurnerLink,
-      burnerUsesLeft: input.isBurnerLink ? 1 : undefined,
-    };
+      const event: Event = {
+        id: eventId,
+        name: input.name,
+        description: input.description,
+        organizerId: input.userId,
+        code,
+        createdAt: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        ttl: input.ttl,
+        isGhostMode: input.isGhostMode,
+        isBurnerLink: input.isBurnerLink,
+        burnerUsesLeft: input.isBurnerLink ? 1 : undefined,
+      };
 
-    const participant: EventParticipant = {
-      id: generateId(),
-      eventId,
-      userId: input.userId,
-      role: 'organizer',
-    };
+      const participant: EventParticipant = {
+        id: generateId(),
+        eventId,
+        userId: input.userId,
+        role: 'organizer',
+      };
+      
+      console.log('Saving event to db...');
+      db.events.set(eventId, event);
+      db.eventsByCode.set(code, eventId);
+      db.participants.set(participant.id, participant);
+      console.log('Event saved successfully');
 
-    db.events.set(eventId, event);
-    db.eventsByCode.set(code, eventId);
-    db.participants.set(participant.id, participant);
-
-    return { event, participant };
+      return { event, participant };
+    } catch (error) {
+      console.error('=== CREATE EVENT ERROR ===');
+      console.error(error);
+      throw error;
+    }
   });
