@@ -288,7 +288,7 @@ export default function HomeScreen() {
                   <AlertTriangle size={16} color="#F97316" strokeWidth={2} />
                   <View style={styles.privacyItemText}>
                     <Text style={styles.privacyLabel}>Shake to Wipe</Text>
-                    <Text style={styles.privacyDesc}>Shake device to delete all local data</Text>
+                    <Text style={styles.privacyDesc}>Shake your device to delete all local data instantly</Text>
                   </View>
                 </View>
               )}
@@ -551,6 +551,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.textSecondary,
     lineHeight: 18,
+    flexWrap: 'wrap' as const,
   },
   manualWipeButton: {
     flexDirection: 'row',
