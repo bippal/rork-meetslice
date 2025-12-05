@@ -15,14 +15,14 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "app.rork.meetslice"
+      "bundleIdentifier": "app.rork.syncpoint"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "app.rork.meetslice",
+      "package": "app.rork.syncpoint",
       "permissions": [
         "android.permission.HIGH_SAMPLING_RATE_SENSORS"
       ]
