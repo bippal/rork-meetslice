@@ -153,7 +153,7 @@ export default function HomeScreen() {
                 <Calendar size={32} color="#FFFFFF" strokeWidth={2} />
               </View>
             </View>
-            <Text style={styles.heroTitle}>MeetSlice</Text>
+            <Text style={styles.heroTitle}>SyncPoint</Text>
             <Text style={styles.heroSubtitle}>
               Find the perfect time for your group without sharing your full schedule
             </Text>

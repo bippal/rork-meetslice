@@ -21,7 +21,7 @@ export default function WelcomeScreen() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title}>Welcome to Sync</Text>
+            <Text style={styles.title}>Welcome to SyncPoint</Text>
             <Text style={styles.subtitle}>
               Find the perfect time for your group without sharing your full schedule
             </Text>
