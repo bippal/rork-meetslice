@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, Alert } from 'react-native';
 import { useState } from 'react';
 import { useApp } from '@/providers/AppProvider';
 import { COLORS } from '@/constants/config';
@@ -10,20 +10,32 @@ export default function WelcomeScreen() {
   const [name, setName] = useState<string>('');
 
   const handleSubmit = () => {
-    console.log('=== BUTTON PRESSED ===');
-    console.log('Name value:', name);
+    Alert.alert('Debug', 'Function started!');
     
-    if (!name.trim()) {
-      console.log('Name is empty, returning');
-      return;
+    try {
+      console.log('=== BUTTON PRESSED ===');
+      console.log('Name value:', name);
+      
+      if (!name.trim()) {
+        console.log('Name is empty, returning');
+        Alert.alert('Error', 'Please enter your name');
+        return;
+      }
+      
+      console.log('Calling createUser...');
+      createUser(name)
+        .then(() => {
+          console.log('createUser completed');
+          Alert.alert('Success', 'User created!');
+        })
+        .catch((error) => {
+          console.error('createUser failed:', error);
+          Alert.alert('Error', 'Failed: ' + (error?.message || error));
+        });
+    } catch (error) {
+      console.error('handleSubmit crashed:', error);
+      Alert.alert('Crash', 'Button error: ' + error);
     }
-    
-    console.log('Calling createUser...');
-    createUser(name).then(() => {
-      console.log('createUser completed');
-    }).catch((error) => {
-      console.error('createUser failed:', error);
-    });
   };
 
   return (
