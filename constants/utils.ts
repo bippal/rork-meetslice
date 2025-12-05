@@ -4,7 +4,7 @@ export function generateTimeBlocks(): string[] {
   const blocks: string[] = [];
   const { START_HOUR, END_HOUR, TIME_BLOCK_MINUTES } = CONFIG;
 
-  for (let hour = START_HOUR; hour < END_HOUR; hour++) {
+  for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
     for (let minute = 0; minute < 60; minute += TIME_BLOCK_MINUTES) {
       const startTime = `${hour.toString().padStart(2, '0')}:${minute
         .toString()
