@@ -36,3 +36,14 @@ export interface TimeSlot {
 export type AvailabilityMode = 'available' | 'unavailable';
 export type OverlapType = 'all-free' | 'all-busy';
 export type EventTTL = number | null;
+
+export interface Notification {
+  id: string;
+  eventId: string;
+  eventName: string;
+  userId: string;
+  userName: string;
+  type: 'joined' | 'left';
+  timestamp: string;
+  isRead: boolean;
+}

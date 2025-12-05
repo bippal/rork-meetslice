@@ -8,6 +8,7 @@ import type {
   Event,
   EventParticipant,
   TimeSlot,
+  Notification,
 } from '@/types';
 import { PRIVACY_OPTIONS } from '@/constants/config';
 
@@ -16,6 +17,7 @@ const STORAGE_KEYS = {
   EVENTS: 'events',
   PARTICIPANTS: 'participants',
   TIME_SLOTS: 'timeSlots',
+  NOTIFICATIONS: 'notifications',
 };
 
 function generateId() {
@@ -31,6 +33,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
   const [events, setEvents] = useState<Event[]>([]);
   const [participants, setParticipants] = useState<EventParticipant[]>([]);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const userQuery = useQuery({
     queryKey: ['user'],
@@ -64,6 +67,14 @@ export const [AppProvider, useApp] = createContextHook(() => {
     },
   });
 
+  const notificationsQuery = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      const stored = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
+      return stored ? JSON.parse(stored) : [];
+    },
+  });
+
   useEffect(() => {
     if (userQuery.data !== undefined) {
       setCurrentUser(userQuery.data);
@@ -87,6 +98,12 @@ export const [AppProvider, useApp] = createContextHook(() => {
       setTimeSlots(timeSlotsQuery.data);
     }
   }, [timeSlotsQuery.data]);
+
+  useEffect(() => {
+    if (notificationsQuery.data) {
+      setNotifications(notificationsQuery.data);
+    }
+  }, [notificationsQuery.data]);
 
   const saveUserMutation = useMutation({
     mutationFn: async (user: User) => {
@@ -125,6 +142,16 @@ export const [AppProvider, useApp] = createContextHook(() => {
     },
     onSuccess: (newTimeSlots) => {
       setTimeSlots(newTimeSlots);
+    },
+  });
+
+  const saveNotificationsMutation = useMutation({
+    mutationFn: async (newNotifications: Notification[]) => {
+      await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(newNotifications));
+      return newNotifications;
+    },
+    onSuccess: (newNotifications) => {
+      setNotifications(newNotifications);
     },
   });
 
@@ -210,6 +237,19 @@ export const [AppProvider, useApp] = createContextHook(() => {
     };
 
     saveParticipantsMutation.mutate([...participants, participant]);
+
+    const notification: Notification = {
+      id: generateId(),
+      eventId: event.id,
+      eventName: event.name,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      type: 'joined',
+      timestamp: new Date().toISOString(),
+      isRead: false,
+    };
+    saveNotificationsMutation.mutate([...notifications, notification]);
+
     return true;
   };
 
@@ -335,6 +375,18 @@ export const [AppProvider, useApp] = createContextHook(() => {
     saveParticipantsMutation.mutate(newParticipants);
     saveTimeSlotsMutation.mutate(newTimeSlots);
 
+    const notification: Notification = {
+      id: generateId(),
+      eventId: event.id,
+      eventName: event.name,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      type: 'left',
+      timestamp: new Date().toISOString(),
+      isRead: false,
+    };
+    saveNotificationsMutation.mutate([...notifications, notification]);
+
     return true;
   };
 
@@ -366,6 +418,18 @@ export const [AppProvider, useApp] = createContextHook(() => {
     return () => clearInterval(interval);
   }, [events, participants, timeSlots]);
 
+  const markNotificationAsRead = (notificationId: string) => {
+    const updatedNotifications = notifications.map((n) =>
+      n.id === notificationId ? { ...n, isRead: true } : n
+    );
+    saveNotificationsMutation.mutate(updatedNotifications);
+  };
+
+  const hideNotification = (notificationId: string) => {
+    const updatedNotifications = notifications.filter((n) => n.id !== notificationId);
+    saveNotificationsMutation.mutate(updatedNotifications);
+  };
+
   const panicWipe = async () => {
     Alert.alert(
       'Panic Wipe',
@@ -379,9 +443,11 @@ export const [AppProvider, useApp] = createContextHook(() => {
             await AsyncStorage.removeItem(STORAGE_KEYS.EVENTS);
             await AsyncStorage.removeItem(STORAGE_KEYS.PARTICIPANTS);
             await AsyncStorage.removeItem(STORAGE_KEYS.TIME_SLOTS);
+            await AsyncStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
             setEvents([]);
             setParticipants([]);
             setTimeSlots([]);
+            setNotifications([]);
             Alert.alert('Wiped', 'All data has been deleted.');
           },
         },
@@ -401,17 +467,29 @@ export const [AppProvider, useApp] = createContextHook(() => {
     return filteredEvents;
   }, [events, participants, currentUser]);
 
+  const myNotifications = useMemo(() => {
+    if (!currentUser) return [];
+    return notifications.filter((n) => {
+      const event = events.find((e) => e.id === n.eventId);
+      if (!event) return false;
+      return event.organizerId === currentUser.id && n.userId !== currentUser.id;
+    });
+  }, [notifications, events, currentUser]);
+
   return {
     currentUser,
     events,
     participants,
     timeSlots,
+    notifications,
     myEvents,
+    myNotifications,
     isLoading:
       userQuery.isLoading ||
       eventsQuery.isLoading ||
       participantsQuery.isLoading ||
-      timeSlotsQuery.isLoading,
+      timeSlotsQuery.isLoading ||
+      notificationsQuery.isLoading,
     createUser,
     createEvent,
     joinEvent,
@@ -422,6 +500,8 @@ export const [AppProvider, useApp] = createContextHook(() => {
     getUserTimeSlots,
     getEventParticipants,
     updateEventActivity,
+    markNotificationAsRead,
+    hideNotification,
     panicWipe,
   };
 });
