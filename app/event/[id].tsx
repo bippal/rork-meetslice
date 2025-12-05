@@ -18,7 +18,7 @@ export default function EventDetailScreen() {
   const { events, getEventParticipants, currentUser, deleteEvent, leaveEvent } = useApp();
   const router = useRouter();
 
-  const event = events.find((e) => e.id === id);
+  const event = events.find((e) => e?.id === id);
   const participants = event ? getEventParticipants(event.id) : [];
   const isOrganizer = event?.organizerId === currentUser?.id;
 
@@ -61,8 +61,8 @@ export default function EventDetailScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            const success = deleteEvent(id);
+          onPress: async () => {
+            const success = await deleteEvent(id);
             if (success) {
               router.replace('/');
             }
@@ -84,8 +84,8 @@ export default function EventDetailScreen() {
         {
           text: 'Leave',
           style: 'destructive',
-          onPress: () => {
-            const success = leaveEvent(id);
+          onPress: async () => {
+            const success = await leaveEvent(id);
             if (success) {
               router.replace('/');
             }

@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useState, useMemo, useCallback } from 'react';
+import { trpc } from '@/lib/trpc';
 import { useApp } from '@/providers/AppProvider';
 import { COLORS, CONFIG } from '@/constants/config';
 import {
@@ -26,11 +27,20 @@ import {
 
 export default function OverlapScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { events, getEventParticipants, timeSlots } = useApp();
+  const { events, getEventParticipants } = useApp();
   const [overlapType, setOverlapType] = useState<OverlapType>('all-free');
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
 
-  const event = events.find((e) => e.id === id);
+  const timeSlotsQuery = trpc.availability.get.useQuery(
+    { eventId: id || '' },
+    { enabled: !!id }
+  );
+
+  const timeSlots = useMemo(() => {
+    return timeSlotsQuery.data?.timeSlots || [];
+  }, [timeSlotsQuery.data]);
+
+  const event = events.find((e) => e?.id === id);
   const eventParticipants = event ? getEventParticipants(event.id) : [];
   const timeBlocks = useMemo(() => generateTimeBlocks(), []);
   const dates = useMemo(() => generateDates(new Date(), CONFIG.DAYS_TO_SHOW), []);

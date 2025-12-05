@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useState, useMemo } from 'react';
+import { trpc } from '@/lib/trpc';
 import { useApp } from '@/providers/AppProvider';
 import { COLORS, CONFIG } from '@/constants/config';
 import {
@@ -20,17 +21,22 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AvailabilityScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { events, setTimeSlotAvailability, getUserTimeSlots, currentUser } = useApp();
+  const { events, setTimeSlotAvailability, currentUser } = useApp();
   const [mode, setMode] = useState<AvailabilityMode>('available');
 
-  const event = events.find((e) => e.id === id);
+  const event = events.find((e) => e?.id === id);
   const timeBlocks = useMemo(() => generateTimeBlocks(), []);
   const dates = useMemo(() => generateDates(new Date(), CONFIG.DAYS_TO_SHOW), []);
 
+  const timeSlotsQuery = trpc.availability.get.useQuery(
+    { eventId: id || '' },
+    { enabled: !!id }
+  );
+
   const userTimeSlots = useMemo(() => {
-    if (!currentUser || !id) return [];
-    return getUserTimeSlots(id, currentUser.id);
-  }, [id, currentUser, getUserTimeSlots]);
+    if (!currentUser || !timeSlotsQuery.data) return [];
+    return timeSlotsQuery.data.timeSlots.filter((ts) => ts.userId === currentUser.id);
+  }, [timeSlotsQuery.data, currentUser]);
 
   const getSlotStatus = (date: string, timeBlock: string): 'available' | 'unavailable' | 'none' => {
     const slot = userTimeSlots.find((ts) => ts.date === date && ts.timeBlock === timeBlock);

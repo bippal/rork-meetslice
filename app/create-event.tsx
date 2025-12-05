@@ -16,9 +16,9 @@ export default function CreateEventScreen() {
   const [isGhostMode, setIsGhostMode] = useState(false);
   const [isBurnerLink, setIsBurnerLink] = useState(false);
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (name.trim()) {
-      const event = createEvent(
+      const event = await createEvent(
         name.trim(),
         description.trim() || undefined,
         ttl,

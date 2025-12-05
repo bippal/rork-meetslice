@@ -10,10 +10,10 @@ export default function JoinEventScreen() {
   const router = useRouter();
   const [code, setCode] = useState<string>('');
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     const trimmedCode = code.trim().toUpperCase();
     if (trimmedCode) {
-      const success = joinEvent(trimmedCode);
+      const success = await joinEvent(trimmedCode);
       if (success) {
         Alert.alert('Success', 'You have joined the event!', [
           { text: 'OK', onPress: () => router.back() },

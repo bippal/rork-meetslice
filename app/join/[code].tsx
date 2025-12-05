@@ -12,7 +12,7 @@ export default function JoinCodeScreen() {
   const router = useRouter();
 
   const eventCode = code?.toUpperCase();
-  const event = events.find((e) => e.code === eventCode);
+  const event = events.find((e) => e?.code === eventCode);
   const eventParticipants = event ? getEventParticipants(event.id) : [];
   const isAlreadyMember = eventParticipants.some((p) => p.userId === currentUser?.id);
 
@@ -24,11 +24,11 @@ export default function JoinCodeScreen() {
     }
   }, [eventCode, router]);
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (eventCode) {
-      const success = joinEvent(eventCode);
+      const success = await joinEvent(eventCode);
       if (success) {
-        const joinedEvent = events.find((e) => e.code === eventCode);
+        const joinedEvent = events.find((e) => e?.code === eventCode);
         if (joinedEvent) {
           router.replace(`/event/${joinedEvent.id}`);
         } else {
