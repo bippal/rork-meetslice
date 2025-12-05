@@ -10,8 +10,14 @@ export default function WelcomeScreen() {
   const [name, setName] = useState<string>('');
 
   const handleSubmit = async () => {
-    if (name.trim()) {
-      await createUser(name.trim());
+    if (!name.trim()) return;
+    
+    try {
+      console.log('Submitting name:', name.trim());
+      await createUser(name);
+      console.log('Navigation will happen automatically via _layout.tsx');
+    } catch (error) {
+      console.error('Failed to create user:', error);
     }
   };
 

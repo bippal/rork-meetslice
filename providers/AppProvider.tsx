@@ -56,16 +56,6 @@ export const [AppProvider, useApp] = createContextHook(() => {
     }
   }, [notificationsQuery.data]);
 
-  const saveUserMutation = useMutation({
-    mutationFn: async (user: User) => {
-      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-      return user;
-    },
-    onSuccess: (user) => {
-      setCurrentUser(user);
-    },
-  });
-
   const saveNotificationsMutation = useMutation({
     mutationFn: async (newNotifications: Notification[]) => {
       await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(newNotifications));
@@ -113,11 +103,25 @@ export const [AppProvider, useApp] = createContextHook(() => {
   });
 
   const createUser = async (name: string) => {
-    const user: User = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name,
-    };
-    await saveUserMutation.mutateAsync(user);
+    try {
+      const user: User = {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: name.trim(),
+      };
+      
+      console.log('Creating user:', user);
+      
+      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+      
+      queryClient.setQueryData(['user'], user);
+      
+      await queryClient.invalidateQueries({ queryKey: ['user'] });
+      
+      console.log('User created successfully:', user);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
   };
 
   const createEvent = useCallback(async (
