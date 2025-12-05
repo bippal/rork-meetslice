@@ -17,7 +17,18 @@ export default function CreateEventScreen() {
   const [isBurnerLink, setIsBurnerLink] = useState(false);
 
   const handleCreate = async () => {
-    if (name.trim()) {
+    console.log('=== CREATE EVENT BUTTON PRESSED ===');
+    console.log('Name:', name);
+    console.log('Description:', description);
+    
+    if (!name.trim()) {
+      console.log('Name is empty, returning');
+      alert('Please enter an event name');
+      return;
+    }
+    
+    console.log('Calling createEvent...');
+    try {
       const event = await createEvent(
         name.trim(),
         description.trim() || undefined,
@@ -25,9 +36,18 @@ export default function CreateEventScreen() {
         isGhostMode,
         isBurnerLink
       );
+      console.log('Event created:', event);
+      
       if (event) {
+        console.log('Navigating to event:', event.id);
         router.replace(`/event/${event.id}`);
+      } else {
+        console.log('Event creation returned null');
+        alert('Failed to create event');
       }
+    } catch (error) {
+      console.error('Create event error:', error);
+      alert('Error: ' + error);
     }
   };
 
@@ -35,7 +55,11 @@ export default function CreateEventScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Create Event', headerBackTitle: 'Back' }} />
       <SafeAreaView edges={['bottom']} style={styles.safe}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        <ScrollView 
+          style={styles.scroll} 
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.form}>
             <View style={styles.field}>
               <Text style={styles.label}>Event Name</Text>
