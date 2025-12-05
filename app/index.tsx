@@ -8,108 +8,119 @@ import {
 } from 'react-native';
 import { useApp } from '@/providers/AppProvider';
 import { COLORS } from '@/constants/config';
-import { Calendar, Plus } from 'lucide-react-native';
+import { Calendar, Plus, Users, Clock, Shield } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
-  const { myEvents, getEventParticipants } = useApp();
+  const { myEvents } = useApp();
   const router = useRouter();
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView edges={['top']} style={styles.safe}>
-        <View style={styles.header}>
-          <Text style={styles.title}>My Events</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => router.push('/create-event')}
-            activeOpacity={0.7}
-          >
-            <Plus size={24} color={COLORS.primary} strokeWidth={2.5} />
-          </TouchableOpacity>
-        </View>
-
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {myEvents.length === 0 ? (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <Calendar size={48} color={COLORS.neutralDark} strokeWidth={1.5} />
+          <View style={styles.hero}>
+            <View style={styles.logoContainer}>
+              <View style={styles.logoCircle}>
+                <Calendar size={32} color="#FFFFFF" strokeWidth={2} />
               </View>
-              <Text style={styles.emptyTitle}>No events yet</Text>
-              <Text style={styles.emptyText}>
-                Create an event or join one with a code
+            </View>
+            <Text style={styles.heroTitle}>MeetSlice</Text>
+            <Text style={styles.heroSubtitle}>
+              Find the perfect time for your group without sharing your full schedule
+            </Text>
+          </View>
+
+          <View style={styles.features}>
+            <View style={styles.featureCard}>
+              <View style={[styles.featureIcon, { backgroundColor: '#EFF6FF' }]}>
+                <Users size={24} color={COLORS.primary} strokeWidth={2} />
+              </View>
+              <Text style={styles.featureTitle}>Group Scheduling</Text>
+              <Text style={styles.featureText}>
+                Coordinate with 2-10 people effortlessly
               </Text>
-              <View style={styles.emptyButtons}>
+            </View>
+
+            <View style={styles.featureCard}>
+              <View style={[styles.featureIcon, { backgroundColor: '#F0FDF4' }]}>
+                <Clock size={24} color={COLORS.available} strokeWidth={2} />
+              </View>
+              <Text style={styles.featureTitle}>Smart Overlap</Text>
+              <Text style={styles.featureText}>
+                See when everyone is free or busy
+              </Text>
+            </View>
+
+            <View style={styles.featureCard}>
+              <View style={[styles.featureIcon, { backgroundColor: '#FEF2F2' }]}>
+                <Shield size={24} color="#F97316" strokeWidth={2} />
+              </View>
+              <Text style={styles.featureTitle}>Privacy First</Text>
+              <Text style={styles.featureText}>
+                Never reveals individual schedules
+              </Text>
+            </View>
+          </View>
+
+          {myEvents.length > 0 && (
+            <View style={styles.quickAccess}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>My Events</Text>
                 <TouchableOpacity
-                  style={styles.primaryButton}
                   onPress={() => router.push('/create-event')}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.primaryButtonText}>Create Event</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.secondaryButton}
-                  onPress={() => router.push('/join-event')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.secondaryButtonText}>Join Event</Text>
+                  <Plus size={24} color={COLORS.primary} strokeWidth={2.5} />
                 </TouchableOpacity>
               </View>
-            </View>
-          ) : (
-            <View style={styles.eventsList}>
-              {myEvents.map((event) => {
-                const participants = getEventParticipants(event.id);
-                return (
-                  <TouchableOpacity
-                    key={event.id}
-                    style={styles.eventCard}
-                    onPress={() => router.push(`/event/${event.id}`)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.eventHeader}>
-                      <View style={styles.eventIcon}>
-                        <Calendar size={20} color={COLORS.primary} strokeWidth={2} />
-                      </View>
-                      <View style={styles.eventInfo}>
-                        <Text style={styles.eventName}>{event.name}</Text>
-                        {event.description && (
-                          <Text style={styles.eventDescription} numberOfLines={1}>
-                            {event.description}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                    <View style={styles.eventFooter}>
-                      <Text style={styles.participantCount}>
-                        {participants.length}{' '}
-                        {participants.length === 1 ? 'participant' : 'participants'}
-                      </Text>
-                      <Text style={styles.eventCode}>Code: {event.code}</Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+              {myEvents.slice(0, 3).map((event) => (
+                <TouchableOpacity
+                  key={event.id}
+                  style={styles.eventQuickCard}
+                  onPress={() => router.push(`/event/${event.id}`)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.eventQuickIcon}>
+                    <Calendar size={18} color={COLORS.primary} strokeWidth={2} />
+                  </View>
+                  <View style={styles.eventQuickInfo}>
+                    <Text style={styles.eventQuickName}>{event.name}</Text>
+                    <Text style={styles.eventQuickCode}>Code: {event.code}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+              {myEvents.length > 3 && (
+                <Text style={styles.moreText}>+{myEvents.length - 3} more events</Text>
+              )}
             </View>
           )}
-        </ScrollView>
 
-        {myEvents.length > 0 && (
-          <View style={styles.bottomActions}>
+          <View style={styles.actions}>
             <TouchableOpacity
-              style={styles.floatingButton}
+              style={styles.primaryButton}
+              onPress={() => router.push('/create-event')}
+              activeOpacity={0.7}
+            >
+              <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
+              <Text style={styles.primaryButtonText}>Create Event</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.secondaryButton}
               onPress={() => router.push('/join-event')}
               activeOpacity={0.7}
             >
-              <Text style={styles.floatingButtonText}>Join Event</Text>
+              <Users size={20} color={COLORS.primary} strokeWidth={2.5} />
+              <Text style={styles.secondaryButtonText}>Join Event</Text>
             </TouchableOpacity>
           </View>
-        )}
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -123,165 +134,169 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: COLORS.cardBackground,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700' as const,
-    color: COLORS.text,
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    flexGrow: 1,
-    padding: 20,
+    paddingBottom: 40,
   },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
+  hero: {
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    paddingBottom: 32,
     alignItems: 'center',
-    paddingHorizontal: 40,
   },
-  emptyIcon: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: COLORS.neutral,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoContainer: {
     marginBottom: 24,
   },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: '700' as const,
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 15,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 22,
-  },
-  emptyButtons: {
-    width: '100%',
-    gap: 12,
-  },
-  primaryButton: {
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    padding: 16,
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: '#FFFFFF',
+  heroTitle: {
+    fontSize: 40,
+    fontWeight: '800' as const,
+    color: COLORS.text,
+    marginBottom: 12,
+    textAlign: 'center',
   },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
+  heroSubtitle: {
+    fontSize: 17,
+    color: COLORS.textSecondary,
+    lineHeight: 26,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: COLORS.primary,
+  features: {
+    paddingHorizontal: 24,
+    gap: 16,
+    marginBottom: 32,
   },
-  eventsList: {
-    gap: 12,
-  },
-  eventCard: {
+  featureCard: {
     backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  eventHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+  featureIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 12,
   },
-  eventIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  featureTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: COLORS.text,
+    marginBottom: 6,
+  },
+  featureText: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    lineHeight: 22,
+  },
+  quickAccess: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700' as const,
+    color: COLORS.text,
+  },
+  eventQuickCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  eventQuickIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  eventInfo: {
+  eventQuickInfo: {
     flex: 1,
   },
-  eventName: {
-    fontSize: 18,
-    fontWeight: '600' as const,
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  eventDescription: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  eventFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  participantCount: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: '500' as const,
-  },
-  eventCode: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: '600' as const,
-  },
-  bottomActions: {
-    padding: 20,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    backgroundColor: COLORS.cardBackground,
-  },
-  floatingButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  floatingButtonText: {
+  eventQuickName: {
     fontSize: 16,
     fontWeight: '600' as const,
+    color: COLORS.text,
+    marginBottom: 2,
+  },
+  eventQuickCode: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  moreText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  actions: {
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 14,
+    padding: 18,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  primaryButtonText: {
+    fontSize: 17,
+    fontWeight: '700' as const,
+    color: '#FFFFFF',
+  },
+  secondaryButton: {
+    backgroundColor: COLORS.cardBackground,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    borderRadius: 14,
+    padding: 18,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  secondaryButtonText: {
+    fontSize: 17,
+    fontWeight: '700' as const,
     color: COLORS.primary,
   },
 });
