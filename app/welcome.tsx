@@ -27,14 +27,14 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        <Stack.Screen options={{ headerShown: false }} />
-        <SafeAreaView style={styles.safe}>
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.keyboardView}
-          >
+    <View style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.content}>
               <View style={styles.header}>
                 <Text style={styles.title}>Welcome to SyncPoint</Text>
@@ -66,10 +66,10 @@ export default function WelcomeScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      </View>
-    </TouchableWithoutFeedback>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
