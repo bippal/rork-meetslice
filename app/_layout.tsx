@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider, useApp } from '@/providers/AppProvider';
 import { StyleSheet } from 'react-native';
+import { COLORS } from '@/constants/config';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,11 +35,35 @@ function RootLayoutNav() {
   }, [isLoading]);
 
   return (
-    <Stack screenOptions={{ headerBackTitle: 'Back' }}>
+    <Stack
+      screenOptions={{
+        headerBackTitle: 'Back',
+        headerStyle: {
+          backgroundColor: COLORS.cardBackground,
+        },
+        headerTintColor: COLORS.primary,
+        headerTitleStyle: {
+          fontWeight: '600',
+          fontSize: 17,
+        },
+      }}
+    >
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="welcome" options={{ headerShown: false }} />
-      <Stack.Screen name="create-event" />
-      <Stack.Screen name="join-event" />
+      <Stack.Screen
+        name="create-event"
+        options={{
+          title: 'Create Event',
+          headerBackTitle: 'Back',
+        }}
+      />
+      <Stack.Screen
+        name="join-event"
+        options={{
+          title: 'Join Event',
+          headerBackTitle: 'Back',
+        }}
+      />
       <Stack.Screen name="event" options={{ headerShown: false }} />
     </Stack>
   );
