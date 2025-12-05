@@ -6,6 +6,16 @@ export const CONFIG = {
   DAYS_TO_SHOW: 7,
 };
 
+export const PRIVACY_OPTIONS = {
+  TTL: {
+    '24h': 24 * 60 * 60 * 1000,
+    '7d': 7 * 24 * 60 * 60 * 1000,
+    '30d': 30 * 24 * 60 * 60 * 1000,
+  },
+  BURNER_LINK_USES: 1,
+  PANIC_SHAKE_THRESHOLD: 800,
+};
+
 export const COLORS = {
   primary: '#0EA5E9',
   primaryDark: '#0284C7',

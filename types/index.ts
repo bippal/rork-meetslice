@@ -10,6 +10,11 @@ export interface Event {
   organizerId: string;
   code: string;
   createdAt: string;
+  lastActivity: string;
+  ttl?: number;
+  isGhostMode?: boolean;
+  isBurnerLink?: boolean;
+  burnerUsesLeft?: number;
 }
 
 export interface EventParticipant {
@@ -30,3 +35,4 @@ export interface TimeSlot {
 
 export type AvailabilityMode = 'available' | 'unavailable';
 export type OverlapType = 'all-free' | 'all-busy';
+export type EventTTL = number | null;

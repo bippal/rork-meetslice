@@ -8,12 +8,14 @@ import {
   Animated,
   PanResponder,
   Alert,
+  Platform,
 } from 'react-native';
 import { useApp } from '@/providers/AppProvider';
-import { COLORS } from '@/constants/config';
-import { Calendar, Plus, Users, Clock, Shield, Trash2 } from 'lucide-react-native';
+import { COLORS, PRIVACY_OPTIONS } from '@/constants/config';
+import { Calendar, Plus, Users, Clock, Shield, Trash2, AlertTriangle } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import { Accelerometer } from 'expo-sensors';
 import type { Event } from '@/types';
 
 interface SwipeableEventCardProps {
@@ -111,8 +113,43 @@ function SwipeableEventCard({ event, onPress, onDelete }: SwipeableEventCardProp
 }
 
 export default function HomeScreen() {
-  const { myEvents, deleteEvent, currentUser } = useApp();
+  const { myEvents, deleteEvent, currentUser, panicWipe } = useApp();
   const router = useRouter();
+  const lastShakeTime = useRef(0);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+
+    let subscription: any;
+
+    const startAccelerometer = async () => {
+      try {
+        await Accelerometer.setUpdateInterval(100);
+        subscription = Accelerometer.addListener((data) => {
+          const { x, y, z } = data;
+          const acceleration = Math.sqrt(x * x + y * y + z * z);
+
+          if (acceleration > 2.5) {
+            const now = Date.now();
+            if (now - lastShakeTime.current > PRIVACY_OPTIONS.PANIC_SHAKE_THRESHOLD) {
+              lastShakeTime.current = now;
+              panicWipe();
+            }
+          }
+        });
+      } catch (error) {
+        console.log('Accelerometer not available:', error);
+      }
+    };
+
+    startAccelerometer();
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, [panicWipe]);
 
   const handleDeleteEvent = (event: Event) => {
     const isOrganizer = event.organizerId === currentUser?.id;
@@ -234,6 +271,36 @@ export default function HomeScreen() {
               <Users size={20} color={COLORS.primary} strokeWidth={2.5} />
               <Text style={styles.secondaryButtonText}>Join Event</Text>
             </TouchableOpacity>
+          </View>
+
+          <View style={styles.privacySection}>
+            <View style={styles.privacyHeader}>
+              <Shield size={18} color={COLORS.primary} strokeWidth={2} />
+              <Text style={styles.privacyTitle}>Privacy Features</Text>
+            </View>
+            <View style={styles.privacyItems}>
+              <View style={styles.privacyItem}>
+                <Text style={styles.privacyLabel}>Zero-Knowledge Overlap</Text>
+                <Text style={styles.privacyDesc}>Only shows group availability, never individuals</Text>
+              </View>
+              {Platform.OS !== 'web' && (
+                <View style={styles.privacyItem}>
+                  <AlertTriangle size={16} color="#F97316" strokeWidth={2} />
+                  <View style={styles.privacyItemText}>
+                    <Text style={styles.privacyLabel}>Shake to Wipe</Text>
+                    <Text style={styles.privacyDesc}>Shake device to delete all local data</Text>
+                  </View>
+                </View>
+              )}
+              <TouchableOpacity
+                style={styles.manualWipeButton}
+                onPress={panicWipe}
+                activeOpacity={0.7}
+              >
+                <AlertTriangle size={16} color={COLORS.unavailable} strokeWidth={2} />
+                <Text style={styles.manualWipeText}>Manual Data Wipe</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -441,5 +508,65 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700' as const,
     color: COLORS.primary,
+  },
+  privacySection: {
+    paddingHorizontal: 24,
+    marginTop: 32,
+    marginBottom: 20,
+  },
+  privacyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  privacyTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: COLORS.text,
+  },
+  privacyItems: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 16,
+  },
+  privacyItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  privacyItemText: {
+    flex: 1,
+  },
+  privacyLabel: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: COLORS.text,
+    marginBottom: 2,
+  },
+  privacyDesc: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    lineHeight: 18,
+  },
+  manualWipeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.unavailable + '15',
+    borderWidth: 1,
+    borderColor: COLORS.unavailable + '30',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 8,
+  },
+  manualWipeText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: COLORS.unavailable,
   },
 });

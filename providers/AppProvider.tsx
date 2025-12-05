@@ -2,12 +2,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
+import { Alert } from 'react-native';
 import type {
   User,
   Event,
   EventParticipant,
   TimeSlot,
 } from '@/types';
+import { PRIVACY_OPTIONS } from '@/constants/config';
 
 const STORAGE_KEYS = {
   USER: 'user',
@@ -134,7 +136,13 @@ export const [AppProvider, useApp] = createContextHook(() => {
     saveUserMutation.mutate(user);
   };
 
-  const createEvent = (name: string, description?: string) => {
+  const createEvent = (
+    name: string,
+    description?: string,
+    ttl?: number,
+    isGhostMode?: boolean,
+    isBurnerLink?: boolean
+  ) => {
     if (!currentUser) return null;
 
     const event: Event = {
@@ -144,6 +152,11 @@ export const [AppProvider, useApp] = createContextHook(() => {
       organizerId: currentUser.id,
       code: generateCode(),
       createdAt: new Date().toISOString(),
+      lastActivity: new Date().toISOString(),
+      ttl,
+      isGhostMode,
+      isBurnerLink,
+      burnerUsesLeft: isBurnerLink ? PRIVACY_OPTIONS.BURNER_LINK_USES : undefined,
     };
 
     const participant: EventParticipant = {
@@ -170,6 +183,25 @@ export const [AppProvider, useApp] = createContextHook(() => {
     );
     if (alreadyParticipant) return true;
 
+    if (event.isBurnerLink && event.burnerUsesLeft !== undefined) {
+      if (event.burnerUsesLeft <= 0) {
+        Alert.alert('Invalid Link', 'This invite link has expired.');
+        return false;
+      }
+
+      const updatedEvents = events.map((e) =>
+        e.id === event.id
+          ? { ...e, burnerUsesLeft: e.burnerUsesLeft! - 1, lastActivity: new Date().toISOString() }
+          : e
+      );
+      saveEventsMutation.mutate(updatedEvents);
+    } else {
+      const updatedEvents = events.map((e) =>
+        e.id === event.id ? { ...e, lastActivity: new Date().toISOString() } : e
+      );
+      saveEventsMutation.mutate(updatedEvents);
+    }
+
     const participant: EventParticipant = {
       id: generateId(),
       eventId: event.id,
@@ -179,6 +211,13 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
     saveParticipantsMutation.mutate([...participants, participant]);
     return true;
+  };
+
+  const updateEventActivity = (eventId: string) => {
+    const updatedEvents = events.map((e) =>
+      e.id === eventId ? { ...e, lastActivity: new Date().toISOString() } : e
+    );
+    saveEventsMutation.mutate(updatedEvents);
   };
 
   const setTimeSlotAvailability = (
@@ -218,6 +257,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
     }
 
     saveTimeSlotsMutation.mutate(newTimeSlots);
+    updateEventActivity(eventId);
   };
 
   const toggleTimeSlot = (eventId: string, date: string, timeBlock: string) => {
@@ -298,10 +338,67 @@ export const [AppProvider, useApp] = createContextHook(() => {
     return true;
   };
 
+  useEffect(() => {
+    const cleanupExpiredEvents = () => {
+      const now = Date.now();
+      const expiredEvents = events.filter((event) => {
+        if (!event.ttl) return false;
+        const lastActivity = new Date(event.lastActivity).getTime();
+        return now - lastActivity > event.ttl;
+      });
+
+      if (expiredEvents.length > 0) {
+        const expiredIds = expiredEvents.map((e) => e.id);
+        const newEvents = events.filter((e) => !expiredIds.includes(e.id));
+        const newParticipants = participants.filter((p) => !expiredIds.includes(p.eventId));
+        const newTimeSlots = timeSlots.filter((ts) => !expiredIds.includes(ts.eventId));
+
+        saveEventsMutation.mutate(newEvents);
+        saveParticipantsMutation.mutate(newParticipants);
+        saveTimeSlotsMutation.mutate(newTimeSlots);
+
+        console.log(`Cleaned up ${expiredEvents.length} expired events`);
+      }
+    };
+
+    cleanupExpiredEvents();
+    const interval = setInterval(cleanupExpiredEvents, 60000);
+    return () => clearInterval(interval);
+  }, [events, participants, timeSlots]);
+
+  const panicWipe = async () => {
+    Alert.alert(
+      'Panic Wipe',
+      'Delete ALL events and availability data from this device? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Wipe Everything',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem(STORAGE_KEYS.EVENTS);
+            await AsyncStorage.removeItem(STORAGE_KEYS.PARTICIPANTS);
+            await AsyncStorage.removeItem(STORAGE_KEYS.TIME_SLOTS);
+            setEvents([]);
+            setParticipants([]);
+            setTimeSlots([]);
+            Alert.alert('Wiped', 'All data has been deleted.');
+          },
+        },
+      ]
+    );
+  };
+
   const myEvents = useMemo(() => {
     if (!currentUser) return [];
     const myParticipations = participants.filter((p) => p.userId === currentUser.id);
-    return events.filter((e) => myParticipations.some((p) => p.eventId === e.id));
+    const filteredEvents = events.filter((e) => myParticipations.some((p) => p.eventId === e.id));
+    
+    if (filteredEvents.some((e) => e.isGhostMode)) {
+      return filteredEvents.filter((e) => !e.isGhostMode);
+    }
+    
+    return filteredEvents;
   }, [events, participants, currentUser]);
 
   return {
@@ -324,5 +421,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
     toggleTimeSlot,
     getUserTimeSlots,
     getEventParticipants,
+    updateEventActivity,
+    panicWipe,
   };
 });

@@ -22,7 +22,10 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "app.rork.meetslice"
+      "package": "app.rork.meetslice",
+      "permissions": [
+        "android.permission.HIGH_SAMPLING_RATE_SENSORS"
+      ]
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
