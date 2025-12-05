@@ -135,7 +135,13 @@ export const [AppProvider, useApp] = createContextHook(() => {
     isGhostMode?: boolean,
     isBurnerLink?: boolean
   ): Promise<Event | null> => {
-    if (!currentUser) return null;
+    if (!currentUser) {
+      console.log('createEvent: No current user');
+      return null;
+    }
+
+    console.log('createEvent: Calling backend mutation...');
+    console.log('Mutation params:', { userId: currentUser.id, name, description, ttl, isGhostMode, isBurnerLink });
 
     try {
       const result = await createEventMutation.mutateAsync({
@@ -147,9 +153,11 @@ export const [AppProvider, useApp] = createContextHook(() => {
         isBurnerLink,
       });
 
+      console.log('createEvent: Backend returned:', result);
       return result.event;
-    } catch {
-      return null;
+    } catch (error) {
+      console.error('createEvent: Backend error:', error);
+      throw error;
     }
   }, [currentUser, createEventMutation]);
 

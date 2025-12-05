@@ -43,11 +43,28 @@ export default function CreateEventScreen() {
         router.replace(`/event/${event.id}`);
       } else {
         console.log('Event creation returned null');
-        alert('Failed to create event');
+        alert('Failed to create event - no user logged in');
       }
     } catch (error) {
       console.error('Create event error:', error);
-      alert('Error: ' + error);
+      
+      let errorMessage = 'Unknown error';
+      
+      if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = (error as { message: string }).message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else {
+        errorMessage = JSON.stringify(error);
+      }
+      
+      if (errorMessage.includes('EXPO_PUBLIC_RORK_API_BASE_URL') || errorMessage.includes('base url')) {
+        alert('Backend Error: The backend API URL is not configured. Check your environment variables.');
+      } else if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('ECONNREFUSED')) {
+        alert('Network Error: Cannot reach the backend server. Make sure the backend is running.');
+      } else {
+        alert('Error creating event: ' + errorMessage);
+      }
     }
   };
 
