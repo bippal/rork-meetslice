@@ -320,7 +320,6 @@ export const [AppProvider, useApp] = createContextHook(() => {
     myNotifications,
     isLoading:
       userQuery.isLoading ||
-      userEventsQuery.isLoading ||
       notificationsQuery.isLoading,
     createUser,
     createEvent,
