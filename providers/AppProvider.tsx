@@ -29,11 +29,16 @@ export const [AppProvider, useApp] = createContextHook(() => {
       const stored = await AsyncStorage.getItem(STORAGE_KEYS.USER);
       return stored ? JSON.parse(stored) : null;
     },
+    staleTime: Infinity,
   });
 
   const userEventsQuery = trpc.events.getUserEvents.useQuery(
     { userId: currentUser?.id || '' },
-    { enabled: !!currentUser }
+    {
+      enabled: !!currentUser,
+      retry: 2,
+      retryDelay: 1000,
+    }
   );
 
   const notificationsQuery = useQuery({
@@ -42,6 +47,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
       const stored = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
       return stored ? JSON.parse(stored) : [];
     },
+    staleTime: Infinity,
   });
 
   useEffect(() => {
