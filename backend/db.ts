@@ -55,22 +55,24 @@ function saveDatabase(data: DatabaseData) {
 }
 
 function createMapProxy<T>(target: Record<string, T>, saveFn: () => void) {
-  return new Proxy(new Map<string, T>(Object.entries(target)), {
+  const map = new Map<string, T>(Object.entries(target));
+
+  return new Proxy(map, {
     get(mapTarget, prop) {
       const original = Reflect.get(mapTarget, prop);
-      
+
       if (typeof original === 'function') {
-        return function (this: Map<string, T>, ...args: unknown[]) {
-          const result = original.apply(this, args);
-          
+        return function (...args: unknown[]) {
+          const result = original.apply(mapTarget, args);
+
           if (['set', 'delete', 'clear'].includes(String(prop))) {
             saveFn();
           }
-          
+
           return result;
         };
       }
-      
+
       return original;
     },
   });
