@@ -37,8 +37,12 @@ export default function EventDetailScreen() {
 
   const handleShare = async () => {
     try {
+      const deepLink = `rork-app://join/${event.code}`;
+      const message = `Join my event "${event.name}" on SyncPoint!\n\nEvent Code: ${event.code}\n\nTap the link to join: ${deepLink}\n\nOr open the app and enter the code manually.`;
+      
       await Share.share({
-        message: `Join my event "${event.name}"!\n\nEvent Code: ${event.code}\n\nOpen the app and use this code to join.`,
+        message,
+        url: deepLink,
       });
     } catch (error) {
       console.error('Error sharing:', error);
