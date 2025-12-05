@@ -116,11 +116,11 @@ export const [AppProvider, useApp] = createContextHook(() => {
     await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
     console.log('Saved to AsyncStorage');
     
-    setCurrentUser(user);
-    console.log('Set currentUser state');
-    
     queryClient.setQueryData(['user'], user);
     console.log('Set query data');
+    
+    await queryClient.refetchQueries({ queryKey: ['user'] });
+    console.log('Refetched queries');
     
     console.log('=== createUser complete ===');
   };

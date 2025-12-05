@@ -9,7 +9,7 @@ export default function WelcomeScreen() {
   const { createUser } = useApp();
   const [name, setName] = useState<string>('');
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     console.log('=== BUTTON PRESSED ===');
     console.log('Name value:', name);
     
@@ -19,8 +19,11 @@ export default function WelcomeScreen() {
     }
     
     console.log('Calling createUser...');
-    await createUser(name);
-    console.log('createUser completed');
+    createUser(name).then(() => {
+      console.log('createUser completed');
+    }).catch((error) => {
+      console.error('createUser failed:', error);
+    });
   };
 
   return (
