@@ -258,6 +258,46 @@ export const [AppProvider, useApp] = createContextHook(() => {
     return participants.filter((p) => p.eventId === eventId);
   };
 
+  const deleteEvent = (eventId: string) => {
+    if (!currentUser) return false;
+
+    const event = events.find((e) => e.id === eventId);
+    if (!event) return false;
+
+    if (event.organizerId !== currentUser.id) return false;
+
+    const newEvents = events.filter((e) => e.id !== eventId);
+    const newParticipants = participants.filter((p) => p.eventId !== eventId);
+    const newTimeSlots = timeSlots.filter((ts) => ts.eventId !== eventId);
+
+    saveEventsMutation.mutate(newEvents);
+    saveParticipantsMutation.mutate(newParticipants);
+    saveTimeSlotsMutation.mutate(newTimeSlots);
+
+    return true;
+  };
+
+  const leaveEvent = (eventId: string) => {
+    if (!currentUser) return false;
+
+    const event = events.find((e) => e.id === eventId);
+    if (!event) return false;
+
+    if (event.organizerId === currentUser.id) return false;
+
+    const newParticipants = participants.filter(
+      (p) => !(p.eventId === eventId && p.userId === currentUser.id)
+    );
+    const newTimeSlots = timeSlots.filter(
+      (ts) => !(ts.eventId === eventId && ts.userId === currentUser.id)
+    );
+
+    saveParticipantsMutation.mutate(newParticipants);
+    saveTimeSlotsMutation.mutate(newTimeSlots);
+
+    return true;
+  };
+
   const myEvents = useMemo(() => {
     if (!currentUser) return [];
     const myParticipations = participants.filter((p) => p.userId === currentUser.id);
@@ -278,6 +318,8 @@ export const [AppProvider, useApp] = createContextHook(() => {
     createUser,
     createEvent,
     joinEvent,
+    deleteEvent,
+    leaveEvent,
     setTimeSlotAvailability,
     toggleTimeSlot,
     getUserTimeSlots,

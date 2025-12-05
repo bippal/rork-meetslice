@@ -6,15 +6,16 @@ import {
   StyleSheet,
   ScrollView,
   Share,
+  Alert,
 } from 'react-native';
 import { useApp } from '@/providers/AppProvider';
 import { COLORS } from '@/constants/config';
-import { Calendar, Users, Clock, Share2 } from 'lucide-react-native';
+import { Calendar, Users, Clock, Share2, Trash2, LogOut } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { events, getEventParticipants, currentUser } = useApp();
+  const { events, getEventParticipants, currentUser, deleteEvent, leaveEvent } = useApp();
   const router = useRouter();
 
   const event = events.find((e) => e.id === id);
@@ -42,6 +43,52 @@ export default function EventDetailScreen() {
     } catch (error) {
       console.error('Error sharing:', error);
     }
+  };
+
+  const handleDeleteEvent = () => {
+    Alert.alert(
+      'Delete Event',
+      `Are you sure you want to delete "${event.name}"? This will remove all participants and availability data.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            const success = deleteEvent(id);
+            if (success) {
+              router.replace('/');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleLeaveEvent = () => {
+    Alert.alert(
+      'Leave Event',
+      `Are you sure you want to leave "${event.name}"? Your availability data will be removed.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Leave',
+          style: 'destructive',
+          onPress: () => {
+            const success = leaveEvent(id);
+            if (success) {
+              router.replace('/');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -143,6 +190,28 @@ export default function EventDetailScreen() {
               </Text>
             </View>
           )}
+
+          <View style={styles.dangerZone}>
+            {isOrganizer ? (
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={handleDeleteEvent}
+                activeOpacity={0.7}
+              >
+                <Trash2 size={20} color={COLORS.unavailable} strokeWidth={2} />
+                <Text style={styles.deleteButtonText}>Delete Event</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.leaveButton}
+                onPress={handleLeaveEvent}
+                activeOpacity={0.7}
+              >
+                <LogOut size={20} color={COLORS.unavailable} strokeWidth={2} />
+                <Text style={styles.leaveButtonText}>Leave Event</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -298,5 +367,40 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     color: COLORS.textSecondary,
+  },
+  dangerZone: {
+    marginTop: 24,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.unavailable + '15',
+    borderWidth: 1,
+    borderColor: COLORS.unavailable + '30',
+    borderRadius: 12,
+    padding: 16,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: COLORS.unavailable,
+  },
+  leaveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.unavailable + '15',
+    borderWidth: 1,
+    borderColor: COLORS.unavailable + '30',
+    borderRadius: 12,
+    padding: 16,
+  },
+  leaveButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: COLORS.unavailable,
   },
 });
