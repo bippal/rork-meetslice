@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MeetSlice",
-    "slug": "meetslice",
+    "name": "SyncPoint",
+    "slug": "syncpoint",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
