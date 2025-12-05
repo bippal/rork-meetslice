@@ -9,9 +9,9 @@ export default function WelcomeScreen() {
   const { createUser } = useApp();
   const [name, setName] = useState<string>('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (name.trim()) {
-      createUser(name.trim());
+      await createUser(name.trim());
     }
   };
 

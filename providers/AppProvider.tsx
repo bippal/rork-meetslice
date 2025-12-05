@@ -112,12 +112,13 @@ export const [AppProvider, useApp] = createContextHook(() => {
     },
   });
 
-  const createUser = (name: string) => {
+  const createUser = async (name: string) => {
     const user: User = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name,
     };
-    saveUserMutation.mutate(user);
+    await saveUserMutation.mutateAsync(user);
+    queryClient.setQueryData(['user'], user);
   };
 
   const createEvent = useCallback(async (
