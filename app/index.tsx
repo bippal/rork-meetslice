@@ -5,15 +5,138 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Animated,
+  PanResponder,
+  Alert,
 } from 'react-native';
 import { useApp } from '@/providers/AppProvider';
 import { COLORS } from '@/constants/config';
-import { Calendar, Plus, Users, Clock, Shield } from 'lucide-react-native';
+import { Calendar, Plus, Users, Clock, Shield, Trash2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRef, useState } from 'react';
+import type { Event } from '@/types';
+
+interface SwipeableEventCardProps {
+  event: Event;
+  onPress: () => void;
+  onDelete: () => void;
+}
+
+function SwipeableEventCard({ event, onPress, onDelete }: SwipeableEventCardProps) {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const [isSwiping, setIsSwiping] = useState(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dx) > 5;
+      },
+      onPanResponderGrant: () => {
+        setIsSwiping(true);
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dx < 0 && gestureState.dx > -100) {
+          translateX.setValue(gestureState.dx);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        setIsSwiping(false);
+        if (gestureState.dx < -50) {
+          Animated.spring(translateX, {
+            toValue: -80,
+            useNativeDriver: true,
+            tension: 100,
+            friction: 10,
+          }).start();
+        } else {
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 100,
+            friction: 10,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  const handleDelete = () => {
+    Animated.spring(translateX, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 100,
+      friction: 10,
+    }).start();
+    onDelete();
+  };
+
+  return (
+    <View style={styles.swipeContainer}>
+      <View style={styles.deleteBackground}>
+        <TouchableOpacity
+          style={styles.deleteAction}
+          onPress={handleDelete}
+          activeOpacity={0.7}
+        >
+          <Trash2 size={20} color="#FFFFFF" strokeWidth={2} />
+          <Text style={styles.deleteText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+      <Animated.View
+        style={[
+          styles.eventQuickCard,
+          {
+            transform: [{ translateX }],
+          },
+        ]}
+        {...panResponder.panHandlers}
+      >
+        <TouchableOpacity
+          style={styles.eventQuickCardInner}
+          onPress={onPress}
+          activeOpacity={0.7}
+          disabled={isSwiping}
+        >
+          <View style={styles.eventQuickIcon}>
+            <Calendar size={18} color={COLORS.primary} strokeWidth={2} />
+          </View>
+          <View style={styles.eventQuickInfo}>
+            <Text style={styles.eventQuickName}>{event.name}</Text>
+            <Text style={styles.eventQuickCode}>Code: {event.code}</Text>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
+  );
+}
 
 export default function HomeScreen() {
-  const { myEvents } = useApp();
+  const { myEvents, deleteEvent, currentUser } = useApp();
   const router = useRouter();
+
+  const handleDeleteEvent = (event: Event) => {
+    const isOrganizer = event.organizerId === currentUser?.id;
+
+    Alert.alert(
+      isOrganizer ? 'Delete Event' : 'Leave Event',
+      isOrganizer
+        ? `Are you sure you want to delete "${event.name}"? This will remove all participants and availability data.`
+        : `Are you sure you want to leave "${event.name}"? Your availability data will be removed.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: isOrganizer ? 'Delete' : 'Leave',
+          style: 'destructive',
+          onPress: () => {
+            deleteEvent(event.id);
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -79,24 +202,16 @@ export default function HomeScreen() {
                   <Plus size={24} color={COLORS.primary} strokeWidth={2.5} />
                 </TouchableOpacity>
               </View>
-              {myEvents.slice(0, 3).map((event) => (
-                <TouchableOpacity
+              {myEvents.slice(0, 5).map((event) => (
+                <SwipeableEventCard
                   key={event.id}
-                  style={styles.eventQuickCard}
+                  event={event}
                   onPress={() => router.push(`/event/${event.id}`)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.eventQuickIcon}>
-                    <Calendar size={18} color={COLORS.primary} strokeWidth={2} />
-                  </View>
-                  <View style={styles.eventQuickInfo}>
-                    <Text style={styles.eventQuickName}>{event.name}</Text>
-                    <Text style={styles.eventQuickCode}>Code: {event.code}</Text>
-                  </View>
-                </TouchableOpacity>
+                  onDelete={() => handleDeleteEvent(event)}
+                />
               ))}
-              {myEvents.length > 3 && (
-                <Text style={styles.moreText}>+{myEvents.length - 3} more events</Text>
+              {myEvents.length > 5 && (
+                <Text style={styles.moreText}>+{myEvents.length - 5} more events</Text>
               )}
             </View>
           )}
@@ -222,15 +337,43 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: COLORS.text,
   },
-  eventQuickCard: {
-    flexDirection: 'row',
+  swipeContainer: {
+    marginBottom: 8,
+    position: 'relative',
+  },
+  deleteBackground: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 80,
+    backgroundColor: COLORS.unavailable,
+    borderRadius: 12,
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  deleteAction: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+  },
+  deleteText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600' as const,
+    marginTop: 4,
+  },
+  eventQuickCard: {
     backgroundColor: COLORS.cardBackground,
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
     borderWidth: 1,
     borderColor: COLORS.border,
+  },
+  eventQuickCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
   },
   eventQuickIcon: {
     width: 36,
