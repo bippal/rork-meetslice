@@ -32,13 +32,33 @@ export const trpcClient = trpc.createClient({
     httpLink({
       url: `${getBaseUrl()}/api/trpc`,
       transformer: superjson,
+      headers: () => ({
+        'Content-Type': 'application/json',
+      }),
       fetch: async (url, options) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
         try {
-          return await fetch(url, options);
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+          return response;
         } catch (error) {
+          clearTimeout(timeoutId);
           console.error('=== tRPC FETCH ERROR ===');
           console.error('URL:', url);
           console.error('Error:', error);
+
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error(
+              `Request timed out connecting to ${getBaseUrl()}. ` +
+              `Make sure the backend is running and accessible.`
+            );
+          }
+
           throw new Error(
             `Failed to connect to backend at ${getBaseUrl()}. ` +
             `Make sure the backend is running. ` +
