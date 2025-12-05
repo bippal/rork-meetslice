@@ -35,9 +35,10 @@ export const [AppProvider, useApp] = createContextHook(() => {
   const userEventsQuery = trpc.events.getUserEvents.useQuery(
     { userId: currentUser?.id || '' },
     {
-      enabled: !!currentUser,
-      retry: 2,
-      retryDelay: 1000,
+      enabled: !!currentUser?.id,
+      retry: 1,
+      retryDelay: 500,
+      staleTime: 5000,
     }
   );
 
