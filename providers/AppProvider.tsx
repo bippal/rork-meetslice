@@ -228,17 +228,19 @@ export const [AppProvider, useApp] = createContextHook(() => {
     return cachedData.timeSlots.filter((ts) => ts.userId === userId);
   }, [queryClient]);
 
+  const saveNotificationsMutate = saveNotificationsMutation.mutate;
+
   const markNotificationAsRead = useCallback((notificationId: string) => {
     const updatedNotifications = notifications.map((n) =>
       n.id === notificationId ? { ...n, isRead: true } : n
     );
-    saveNotificationsMutation.mutate(updatedNotifications);
-  }, [notifications, saveNotificationsMutation]);
+    saveNotificationsMutate(updatedNotifications);
+  }, [notifications, saveNotificationsMutate]);
 
   const hideNotification = useCallback((notificationId: string) => {
     const updatedNotifications = notifications.filter((n) => n.id !== notificationId);
-    saveNotificationsMutation.mutate(updatedNotifications);
-  }, [notifications, saveNotificationsMutation]);
+    saveNotificationsMutate(updatedNotifications);
+  }, [notifications, saveNotificationsMutate]);
 
   const panicWipe = useCallback(async () => {
     Alert.alert(

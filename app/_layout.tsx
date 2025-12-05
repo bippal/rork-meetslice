@@ -13,27 +13,27 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const { currentUser, isLoading } = useApp();
+  const app = useApp();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (!app || app.isLoading) return;
 
     const inAuth = segments[0] === 'welcome';
 
-    if (!currentUser && !inAuth) {
+    if (!app.currentUser && !inAuth) {
       router.replace('/welcome');
-    } else if (currentUser && inAuth) {
+    } else if (app.currentUser && inAuth) {
       router.replace('/');
     }
-  }, [currentUser, segments, isLoading, router]);
+  }, [app, segments, router]);
 
   useEffect(() => {
-    if (!isLoading) {
+    if (app && !app.isLoading) {
       SplashScreen.hideAsync();
     }
-  }, [isLoading]);
+  }, [app]);
 
   return (
     <Stack
