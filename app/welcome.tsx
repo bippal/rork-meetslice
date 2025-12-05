@@ -10,15 +10,17 @@ export default function WelcomeScreen() {
   const [name, setName] = useState<string>('');
 
   const handleSubmit = async () => {
-    if (!name.trim()) return;
+    console.log('=== BUTTON PRESSED ===');
+    console.log('Name value:', name);
     
-    try {
-      console.log('Submitting name:', name.trim());
-      await createUser(name);
-      console.log('Navigation will happen automatically via _layout.tsx');
-    } catch (error) {
-      console.error('Failed to create user:', error);
+    if (!name.trim()) {
+      console.log('Name is empty, returning');
+      return;
     }
+    
+    console.log('Calling createUser...');
+    await createUser(name);
+    console.log('createUser completed');
   };
 
   return (
@@ -47,9 +49,8 @@ export default function WelcomeScreen() {
             />
 
             <TouchableOpacity
-              style={[styles.button, !name.trim() && styles.buttonDisabled]}
+              style={styles.button}
               onPress={handleSubmit}
-              disabled={!name.trim()}
               activeOpacity={0.7}
             >
               <Text style={styles.buttonText}>Get Started</Text>
@@ -112,9 +113,6 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
   },
   buttonText: {
     fontSize: 16,
