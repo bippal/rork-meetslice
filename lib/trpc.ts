@@ -7,12 +7,8 @@ import { Platform } from "react-native";
 export const trpc = createTRPCReact<AppRouter>();
 
 const getBaseUrl = () => {
-  // First check for explicit environment variable
-  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
-    return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
-  }
-
   if (__DEV__) {
+    // In development, prioritize local backend
     // Android emulator uses 10.0.2.2 to access host machine's localhost
     if (Platform.OS === 'android') {
       return 'http://10.0.2.2:3000';
@@ -20,6 +16,11 @@ const getBaseUrl = () => {
 
     // iOS simulator and web can use localhost
     return 'http://localhost:3000';
+  }
+
+  // In production, use environment variable
+  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
+    return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
   }
 
   throw new Error(
